@@ -1,64 +1,8 @@
-    tags: true
-    udo: required
-dist: trusty
+udo: false
 language: java
-jdk: oraclejdk8
-
-addons:
-  apt:
-    sources:
-      - google-chrome
-    packages:
-      - google-chrome-stable
-
-cache:
-  directories:
-    - $HOME/.m2
-    - armf-client/node_modules
-
-before_install:
-  - export CHROME_BIN=chromium-browser
-  - export DISPLAY=:99.0
-  - sh -e /etc/init.d/xvfb start
-  - chmod +x scripts/build.sh
-  - chmod +x scripts/deploy.sh
-  # upgrade mongoDB
-  - sudo rm /etc/apt/sources.list.d/mongodb*.list
-  - sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
-  - echo "deb http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
-  - sudo apt-get update
-  - sudo apt install mongodb-org
-  # download and install Bluemix cli
-  - wget https://public.dhe.ibm.com/cloud/bluemix/cli/bluemix-cli/Bluemix_CLI_0.5.4_amd64.tar.gz
-  - tar zxvf Bluemix_CLI_0.5.4_amd64.tar.gz
-  - sudo ./Bluemix_CLI/install_bluemix_cli
-  # download and install cloudfoundry cli
-  - wget -q -O - https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | sudo apt-key add -
-  - echo "deb http://packages.cloudfoundry.org/debian stable main" | sudo tee /etc/apt/sources.list.d/cloudfoundry-cli.list
-  - sudo apt-get update
-  - sudo apt-get install cf-cli
-  
-script: scripts/build.sh ${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}
-
-deploy:
-  - provider: script
-    script: scripts/deploy.sh ${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}
-    skip_cleanup: true
-    on:
-      branch: master-temp
-  - provider: script
-    script: scripts/deploy.sh ${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}
-    skip_cleanup: true
-    on:
-      branch: master
-  - provider: script
-    script: scripts/deploy.sh ${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}
-    skip_cleanup: true
-    on:
-      branch: master-test
-  - provider: script
-    script: scripts/deploy.sh ${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH}
-    skip_cleanup: true
-    on:
-      branch: master-prod
-      ags: true
+ deploy:
+  provider: script
+  script: "cp .travis.settings.xml $HOME/.m2/settings.xml && mvn deploy"
+  skip_cleanup: true
+  on:
+    tags: true
